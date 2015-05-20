@@ -1,0 +1,33 @@
+data.dir<-'C:/Users/tim/Documents/U of C MScA/2015 02 Statistical Applications/Homework/HW2/'
+filename<-paste0(data.dir, 'prozac2.csv')
+Prozac<-read.csv(filename,stringsAsFactors=F)
+head(Prozac)
+finData <-FinData[,2:10]
+head(finData)
+
+mean(Prozac$hamd)
+sd(Prozac$hamd)
+plot(Prozac$week,Prozac$hamd)
+Prozac[Prozac$txw==2,]
+pz <- c(0:6)
+pz_c_total <- NULL
+pz_c_rx <- NULL
+pz_c_placebo <- NULL
+pz_hd_mean <- NULL
+pz_hd_sd <- NULL
+for(x in 0:6){
+  pz_loop <- Prozac[Prozac$week==x,]
+  
+  pz_c_total <- c(pz_c_total, nrow(pz_loop))
+  pz_c_rx <- c(pz_c_rx, nrow(pz_loop[pz_loop$tx==1,]))
+  pz_c_placebo <- c(pz_c_placebo, nrow(pz_loop[pz_loop$tx==0,]))
+  pz_hd_mean <- c(pz_hd_mean, mean(pz_loop$hamd))
+  pz_hd_sd <- c(pz_hd_sd, sd(pz_loop$hamd))
+}
+pz_c_total
+pz_c_rx
+pz_c <- cbind(pz_c_total,pz_c_rx,pz_c_placebo)
+matplot(0:6,pz_c,type=c("b"),pch=1,col=1:3,xlab="Week",ylab="Sample Size")
+colnames(pz_c) <- c("Total","Treatment","Placebo")
+legend("topright",legend=colnames(pz_c),col=1:3,pch=1)
+boxplot(hamd~week,data=Prozac,xlab="Week",ylab="Hamilton Depression Rating Scale")
