@@ -1,0 +1,76 @@
+data.dir<-'C:/Users/tim/Documents/U of C MScA/2015 02 Statistical Applications/Homework/HW3/'
+ch<-paste0(data.dir, 'child.txt')
+Child<-read.table(ch,sep="\t",header=TRUE,stringsAsFactors=F)
+head(Child)
+child <- Child
+
+library("rmeta")
+
+####   MH full   ####
+
+cTx_full <- subset(child,child$TX==1)
+cPl_full <- subset(child,child$TX==0)
+child_full <- cbind(cTx[,c(1,3,4)],cPl[,c(3,4)])
+
+colnames(child_full) <- c('Study', 'Tx_AEs', 'Tx_N', 'Pl_AEs', 'Pl_N')
+#child_full
+adder <- ifelse(child_full$Tx_AEs*child_full$Pl_AEs==0,0.5,0)
+child_full$Tx_AEs <- child_full$Tx_AEs + adder
+child_full$Pl_AEs <- child_full$Pl_AEs + adder
+child_full
+MH_full <- meta.MH(Tx_N, Pl_N, Tx_AEs, Pl_AEs, data=child_full)
+summary(MH_full)
+
+names(MH_full)
+MH_full$names <- paste(format(exp(MH_full$logOR),digits=2)," (",format(exp(MH_full$logOR-1.96*MH_full$selogOR),digits=2),
+                        ", ",format(exp(MH_full$logOR+1.96*MH_full$selogOR),digits=2), ")")
+MHf_summOR <- paste("Summary OR: ",format(exp(MH_full$logMH),digits=2)," (",format(exp(MH_full$logMH-1.96*MH_full$selogMH),digits=2),
+                    ", ",format(exp(MH_full$logMH+1.96*MH_full$selogMH),digits=2), ")")
+
+plot(MH_full,summary=T,summlabel=MHf_summOR,ylab="BY STUDY: Odds Ratio (95% confidence interval)",conf.level=0.95)
+
+
+####   DSL   ####
+
+#rownames(child_full) <- c(1:24)
+DSL <- meta.DSL(Tx_N, Pl_N, Tx_AEs, Pl_AEs, data=child_full, conf.level=0.95)
+summary(DSL)
+DSL$names <- paste(format(exp(DSL$logs),digits=2)," (",format(exp(DSL$logs-1.96*DSL$selogs),digits=2),
+                   ", ",format(exp(DSL$logs+1.96*DSL$selogs),digits=2), ")")
+DSL_summOR <- paste("Summary OR: ",format(exp(DSL$logDSL),digits=2)," (",format(exp(DSL$logDSL-1.96*DSL$selogDSL),digits=2),
+                   ", ",format(exp(DSL$logDSL+1.96*DSL$selogDSL),digits=2), ")")
+#names(DSL)
+#exp(DSL$logs)
+plot(DSL, summlabel=DSL_summOR,ylab="BY STUDY: Odds Ratio (95% confidence interval)",conf.level=0.95)
+
+# Unit-Specific Estimates
+
+sigmanu2 <- 0.6914         # MML-2 random intercept estimate
+sigma2 <- pi^2/3
+
+d <- (sigmanu2+sigma2)/sigma2
+d
+
+Tx <- 1
+Pl <- 0
+
+intercept_est <- -4.7233   # MML-2 intercept regression weight estimate
+Tx_est <- 0.7779           # MML-2 treatment regression weight estimate
+
+Pr_AE_Tx <- 1/(1+exp(-((intercept_est+Tx_est*Tx)/sqrt(d))))
+Pr_AE_Tx
+Pr_AE_Pl <- 1/(1+exp(-((intercept_est+Tx_est*Pl)/sqrt(d))))
+Pr_AE_Pl
+
+# Population Estimates
+
+beta0hat <- -4.3895       # MML-2 intercept population average estimate
+beta1hat <- 0.7653        # MML-2 treatment population average estimate
+
+Pr_AE_Tx_pop <- 1/(1+exp(-(beta0hat+beta1hat*Tx)))
+Pr_AE_Tx_pop
+Pr_AE_Pl_pop <- 1/(1+exp(-(beta0hat+beta1hat*Pl)))
+Pr_AE_Pl_pop
+
+Pr_AE_Tx/Pr_AE_Pl
+Pr_AE_Tx_pop/Pr_AE_Pl_pop
