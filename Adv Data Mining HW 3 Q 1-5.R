@@ -1,0 +1,88 @@
+data.dir<-'C:/Users/tim/Documents/U of C MScA/2015 02 ADM & Predictive Analytics/assignments/HW3/'
+seat_str<-paste0(data.dir, 'seat.csv')
+seat<-read.csv(seat_str,stringsAsFactors=F)
+fv_str<-paste0(data.dir, 'fv.csv')
+fv<-read.csv(fv_str,stringsAsFactors=F)
+ev_str<-paste0(data.dir, 'ev.csv')
+ev<-read.csv(ev_str,stringsAsFactors=F)
+head(seat)
+head(fv)
+head(ev)
+
+# 1 summary stats and graphs
+
+range(seat$V1)
+range(fv$floor.vol)
+range(ev$electronic.vol)
+mean(seat$V1)
+mean(fv$floor.vol)
+mean(ev$electronic.vol)
+sd(seat$V1)
+sd(fv$floor.vol)
+sd(ev$electronic.vol)
+
+par(mfrow=c(2,2))
+plot(seat, ylab="seat price")
+plot(fv)
+plot(ev)
+comb <- cbind(seat,fv$floor.vol,ev$electronic.vol)
+matplot(comb, ylab='combined')
+legend("topleft", legend=c("price","floor","electronic"), col=2:4, pch=1)
+
+# 2 linear model and R2
+comb$vol.sum <- comb$electronic.vol + comb$floor.vol
+summary(lm(V1~vol.sum, data=comb))
+# 3 linear model and R2
+colnames(comb) <- c("X","V1","floor.vol","electronic.vol")
+fit01 <- lm(V1~floor.vol, data=comb)
+summary(fit01)
+efit01 <- lm(V1~electronic.vol, data=comb)
+summary(efit01)
+
+# 4 quadratic, cubic, quartic, and degree 10
+par(mfrow=c(2,2))
+fit02 <- lm(V1~poly(floor.vol,degree=2), data=comb)
+summary(fit02)
+plot(fit02, which=1, main="Quadratic")
+fit03 <- lm(V1~poly(floor.vol,degree=3), data=comb)
+summary(fit03)
+plot(fit03, which=1, main="Cubic")
+fit04 <- lm(V1~poly(floor.vol,degree=4), data=comb)
+summary(fit04)
+plot(fit04, which=1, main="Quartic")
+fit10 <- lm(V1~poly(floor.vol,degree=10), data=comb)
+summary(fit10)
+plot(fit10, which=1, main="degree 10")
+
+efit02 <- lm(V1~poly(electronic.vol,degree=2), data=comb)
+summary(efit02)
+plot(efit02, which=1, main="Quadratic")
+efit03 <- lm(V1~poly(electronic.vol,degree=3), data=comb)
+summary(efit03)
+plot(efit03, which=1, main="Cubic")
+efit04 <- lm(V1~poly(electronic.vol,degree=4), data=comb)
+summary(efit04)
+plot(efit04, which=1, main="Quartic")
+efit10 <- lm(V1~poly(electronic.vol,degree=10), data=comb)
+summary(efit10)
+plot(efit10, which=1, main="degree 10")
+
+cfit01 <- lm(V1~polym(electronic.vol,floor.vol,degree=1), data=comb)
+cfit02 <- lm(V1~polym(electronic.vol,floor.vol,degree=2), data=comb)
+summary(cfit02)
+plot(cfit02, which=1, main="Quadratic")
+cfit03 <- lm(V1~poly(electronic.vol,floor.vol,degree=3), data=comb)
+summary(cfit03)
+plot(cfit03, which=1, main="Cubic")
+cfit04 <- lm(V1~poly(electronic.vol,floor.vol,degree=4), data=comb)
+summary(cfit04)
+plot(cfit04, which=1, main="Quartic")
+cfit10 <- lm(V1~poly(electronic.vol,floor.vol,degree=10), data=comb)
+summary(cfit10)
+plot(cfit10, which=1, main="degree 10")
+
+# 5 ANOVA
+anova(fit01,fit02,fit03,fit04,fit10)
+anova(efit01,efit02,efit03,efit04,efit10)
+anova(cfit01,cfit02,cfit03,cfit04,cfit10)
+
